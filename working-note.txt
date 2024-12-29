@@ -1,0 +1,86 @@
+cd /var/www
+composer create-project --prefer-dist laravel/laravel .
+docker exec -it laravel_app sh
+npm install
+npm run dev
+composer update
+docker-compose up -d --build 
+make build
+
+docker system prune -a
+
+#RUN chmod 777 -R /var/www/
+
+
+DB_CONNECTION=mysql
+DB_HOST=mysql
+DB_PORT=3306
+DB_DATABASE=laravel
+DB_USERNAME=root
+DB_PASSWORD=root
+
+CACHE_DRIVER=redis
+REDIS_HOST=redis
+REDIS_PASSWORD=null
+REDIS_PORT=6379
+
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.mailtrap.io
+MAIL_PORT=2525
+MAIL_USERNAME=your_username
+MAIL_PASSWORD=your_password
+MAIL_ENCRYPTION=null
+
+
+root 
+root
+
+ volumes:
+#   mysql-data:
+#     driver: local
+#   redis-data:
+#     driver: local
+
+
+tail -f storage/logs/laravel.log
+
+chown -R www-data:www-data storage
+chown -R www-data:www-data bootstrap/cache
+chmod -R 775 storage
+chmod -R 775 bootstrap/cache
+
+php artisan key:generate
+
+php artisan config:cache
+php artisan config:clear
+
+
+<IfModule mod_rewrite.c>
+    <IfModule mod_negotiation.c>
+        Options -MultiViews -Indexes
+    </IfModule>
+
+    RewriteEngine On
+
+    # Redirect Trailing Slashes If Not A Folder...
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^(.*)/$ /$1 [L,R=301]
+
+    # Handle Front Controller...
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^ index.php [L]
+
+    # Handle Authorization Header
+    RewriteCond %{HTTP:Authorization} .
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+</IfModule>
+
+
+composer install
+composer update
+
+
+php artisan route:cache
+php artisan route:clear
+php artisan view:clear

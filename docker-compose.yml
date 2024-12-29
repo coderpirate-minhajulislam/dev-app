@@ -1,0 +1,66 @@
+version: '3.8'
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: minhaz_app
+    working_dir: /var/www
+    volumes:
+      - ./src:/var/www
+    networks:
+      - minhaz
+
+  webserver:
+    image: nginx:alpine
+    container_name: minhaz_webserver
+    working_dir: /var/www
+    volumes:
+      - ./src:/var/www
+      - ./docker/nginx/conf.d:/etc/nginx/conf.d
+    ports:
+      - "8000:80"
+    networks:
+      - minhaz
+
+  mysql:
+    image: mysql:8.0
+    container_name: minhaz_mysql
+    restart: unless-stopped
+    tty: true
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_DATABASE: laravel
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_PASSWORD: root
+    volumes:
+      - ./docker/volumes/mysql-data:/var/lib/mysql
+    networks:
+      - minhaz
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: minhaz_phpmyadmin
+    restart: always
+    ports:
+      - "8080:80"
+    environment:
+      PMA_HOST: mysql
+      MYSQL_ROOT_PASSWORD: root
+    networks:
+      - minhaz
+
+  redis:
+    image: redis:alpine
+    container_name: minhaz_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./docker/volumes/redis-data:/data
+    networks:
+      - minhaz
+
+networks:
+  minhaz:
+    driver: bridge
