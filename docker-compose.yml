@@ -1,19 +1,20 @@
 version: '3.8'
+
 services:
   app:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: minhaz_app
+    container_name: dev_app
     working_dir: /var/www
     volumes:
       - ./src:/var/www
     networks:
-      - minhaz
+      - dev
 
   webserver:
     image: nginx:alpine
-    container_name: minhaz_webserver
+    container_name: dev_webserver
     working_dir: /var/www
     volumes:
       - ./src:/var/www
@@ -21,11 +22,11 @@ services:
     ports:
       - "8000:80"
     networks:
-      - minhaz
+      - dev
 
   mysql:
     image: mysql:8.0
-    container_name: minhaz_mysql
+    container_name: dev_mysql
     restart: unless-stopped
     tty: true
     ports:
@@ -37,11 +38,11 @@ services:
     volumes:
       - ./docker/volumes/mysql-data:/var/lib/mysql
     networks:
-      - minhaz
+      - dev
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
-    container_name: minhaz_phpmyadmin
+    container_name: dev_phpmyadmin
     restart: always
     ports:
       - "8080:80"
@@ -49,18 +50,41 @@ services:
       PMA_HOST: mysql
       MYSQL_ROOT_PASSWORD: root
     networks:
-      - minhaz
+      - dev
 
   redis:
     image: redis:alpine
-    container_name: minhaz_redis
+    container_name: dev_redis
     ports:
       - "6379:6379"
     volumes:
       - ./docker/volumes/redis-data:/data
     networks:
-      - minhaz
+      - dev
+
+  mailtrap:
+    image: mailhog/mailhog
+    container_name: dev_mailtrap
+    ports:
+      - "8025:8025"
+    networks:
+      - dev
+
+  postman:
+    image: postman/newman
+    container_name: dev_postman
+    volumes:
+      - ./collections:/etc/newman
+    entrypoint: ["newman", "run", "/etc/newman/your_collection.json"]
+    networks:
+      - dev
 
 networks:
-  minhaz:
+  dev:
     driver: bridge
+
+volumes:
+  mysql-data:
+    driver: local
+  redis-data:
+    driver: local
